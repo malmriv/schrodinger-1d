@@ -8,18 +8,17 @@ c   OUTPUT.       A plain text file with a column matrix of length N*iterations.
       implicit none
 c     Declaracion of variables.
       integer cycles, i, j, N, iterations
-      real*8 lambda, h, s, s_n, k_0
-      real*8, dimension(:), allocatable :: V
-      complex*8, dimension(:), allocatable :: chi, alpha, beta, wavefunc
-
+      real*16 lambda, h, s_n, k_0, pi
+      real*16, dimension(:), allocatable :: V
+      complex*16, dimension(:), allocatable :: chi,alpha,beta,wavefunc
+      parameter (pi = 3.14159265358979323846264338)
 c     Parameters are read from a .txt file in the same folder
       open(40,file="./config.txt",status="old")
-      read(40,*) N,lambda,s,h,cycles,iterations
+      read(40,*) N,lambda,h,cycles,iterations
       close(40)
 
 c     The remaining variables are fixed by our initial choice of parameters
-      cycles = N/cycles
-      k_0 = 2.d0*3.14159265358979*cycles/float(N)
+      k_0 = 2.d0*pi*float(cycles)/N
       s_n = 1.d0/(4*k_0**2.d0)
 
       write(*,*) "Parameters set."
@@ -44,8 +43,8 @@ c     Define initial state of the wave: gaussian.
       write(*,*) "Initial state of the system defined."
 
 c     Compute alpha coefficients
-      alpha(N-1) = 0
-      do j = (N-2),1,-1
+      alpha(N-1) = 0.d0
+      do j = (N-2),0,-1
         alpha(j) = -1.d0/(-2.d0 + complex(0,2)/s_n - V(j+1)
      &  + alpha(j+1))
       end do
@@ -57,15 +56,14 @@ c     computed for every step.
       do i = 1,iterations
 
 c     Compute beta coefficients
-      beta(N-1) = 0
+      beta(N-1) = 0.d0
       do j = (N-2),0,-1
-        beta(j) = -alpha(j)*(complex(0,4.d0/s_n)*wavefunc(j+1)-
+        beta(j) = -alpha(j)*(complex(0.d0,4.d0/s_n)*wavefunc(j+1)-
      &  beta(j+1))
       end do
 
 c     Compute chi operator and wave function values
-      chi(0) = 0
-      chi(N) = 0
+      chi = 0.d0
 
       do j = 1,N
         chi(j) = alpha(j-1)*chi(j-1) + beta(j-1)
